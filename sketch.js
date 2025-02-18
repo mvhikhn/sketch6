@@ -162,7 +162,7 @@ function createCols(_url) {
 
 function windowResized() {
   customResizeCanvas(windowWidth, windowHeight);
-  generateCity(); // Regenerate the city layout when resized
+  generateCity(); 
 }
 
 function customResizeCanvas(w, h) {
@@ -177,15 +177,17 @@ function customResizeCanvas(w, h) {
     newHeight = w / aspectRatio;
   }
 
-  // Center the canvas
+
   let offsetX = (w - newWidth) / 2;
   let offsetY = (h - newHeight) / 2;
 
-  // Apply the new size and position
+  
   resizeCanvas(newWidth, newHeight);
   if (canvas && canvas.elt) {
     canvas.elt.style.position = 'absolute';
     canvas.elt.style.left = `${offsetX}px`;
     canvas.elt.style.top = `${offsetY}px`;
+    canvas.elt.style.width = `${newWidth}px`;
+    canvas.elt.style.height = `${newHeight}px`;
   }
 }
