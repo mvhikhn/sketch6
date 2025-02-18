@@ -1,13 +1,20 @@
-let numPoints = 23;
+const numPoints = 23;
 let points = [];
 let central = [];
 let metroLines = [];
 let connectedOuterPoints = new Set();
 
-function setup() {
-  createCanvas(800, 800);
-  strokeCap(ROUND);
+let targetWidth = 800;
+let targetHeight = 800;
+let canvas;
 
+function setup() {
+  canvas = createCanvas(targetWidth, targetHeight);
+  canvas.elt.style.display = 'block';
+  canvas.elt.style.maxWidth = '100%';
+  canvas.elt.style.height = 'auto';
+  customResizeCanvas(windowWidth, windowHeight);
+  strokeCap(ROUND);
   generateCity();
 }
 
@@ -16,13 +23,11 @@ function generateCity() {
   central = [];
   metroLines = [];
   connectedOuterPoints = new Set();
-
   generateOuter(22);
   generateCentral(21);
   while (connectedOuterPoints.size < points.length) {
     generateMetroLine();
   }
-
   redraw();
 }
 
@@ -30,7 +35,6 @@ function generateOuter(lineAmount) {
   let centerX = width / 2;
   let centerY = height / 2;
   let radius = random(width / 2, width / 2);
-
   for (let i = 0; i < lineAmount; i++) {
     let angle = TAU / lineAmount;
     let x = centerX + cos(angle * i) * random(width / 4, radius);
@@ -43,7 +47,6 @@ function generateCentral(numCentralPoints) {
   let centerX = width / 2;
   let centerY = height / 2;
   let radius = random(width / 6, width / 5);
-
   for (let i = 0; i < numCentralPoints; i++) {
     let angle = TAU / numCentralPoints;
     let x = centerX + cos(angle * i) * random(radius);
@@ -55,12 +58,10 @@ function generateCentral(numCentralPoints) {
 function generateMetroLine() {
   let startIndex = floor(random(points.length - 3));
   let outerStartPoint = points[startIndex];
-
   let closestIndex = 0;
   let furthestIndex = 0;
   let closestDistance = Infinity;
   let furthestDistance = 0;
-
   for (let i = 0; i < central.length; i++) {
     let distance = p5.Vector.dist(outerStartPoint, central[i]);
     if (distance < closestDistance) {
@@ -72,14 +73,11 @@ function generateMetroLine() {
       furthestIndex = i;
     }
   }
-
   let closestPoint = central[closestIndex];
   let furthestPoint = central[furthestIndex];
-
   let outerFinishPoint;
   let finishIndex = (startIndex + 2 + floor(random(points.length - 4))) % points.length;
   outerFinishPoint = points[finishIndex];
-
   metroLines.push([outerStartPoint, closestPoint, furthestPoint, outerFinishPoint]);
   connectedOuterPoints.add(outerStartPoint);
   connectedOuterPoints.add(outerFinishPoint);
@@ -122,26 +120,24 @@ function drawMetroLines() {
 function drawMetroLine(linePoints, metroColor) {
   stroke(metroColor);
   strokeWeight(5);
-
   for (let i = 0; i < linePoints.length - 1; i++) {
     let currentPoint = linePoints[i];
     let nextPoint = linePoints[i + 1];
     let dx = nextPoint.x - currentPoint.x;
     let dy = nextPoint.y - currentPoint.y;
-
     let absDX = abs(dx);
     let absDY = abs(dy);
-
+    
     let dirX = dx > 0 ? 1 : -1;
     let dirY = dy > 0 ? 1 : -1;
-
+    
     let startX = currentPoint.x;
     let startY = currentPoint.y;
     let endX = startX + dirX * min(absDX, absDY);
     let endY = startY + dirY * min(absDX, absDY);
-
+    
     line(startX, startY, endX, endY);
-
+    
     if (absDX > absDY) {
       line(endX, endY, endX + dirX * (absDX - absDY), endY);
       line(endX + dirX * (absDX - absDY), endY, endX + dirX * (absDX - absDY), nextPoint.y);
@@ -151,5 +147,45 @@ function drawMetroLine(linePoints, metroColor) {
       line(endX, endY + dirY * (absDY - absDX), nextPoint.x, endY + dirY * (absDY - absDX));
       line(nextPoint.x, endY + dirY * (absDY - absDX), nextPoint.x, nextPoint.y);
     }
+  }
+}
+
+function createCols(_url) {
+  let slash_index = _url.lastIndexOf('/');
+  let pallate_str = _url.slice(slash_index + 1);
+  let arr = pallate_str.split('-');
+  for (let i = 0; i < arr.length; i++) {
+    arr[i] = '#' + arr[i];
+  }
+  return arr;
+}
+
+function windowResized() {
+  customResizeCanvas(windowWidth, windowHeight);
+  generateCity(); // Regenerate the city layout when resized
+}
+
+function customResizeCanvas(w, h) {
+  let aspectRatio = targetWidth / targetHeight;
+  let newWidth, newHeight;
+
+  if (w / h > aspectRatio) {
+    newHeight = h;
+    newWidth = h * aspectRatio;
+  } else {
+    newWidth = w;
+    newHeight = w / aspectRatio;
+  }
+
+  // Center the canvas
+  let offsetX = (w - newWidth) / 2;
+  let offsetY = (h - newHeight) / 2;
+
+  // Apply the new size and position
+  resizeCanvas(newWidth, newHeight);
+  if (canvas && canvas.elt) {
+    canvas.elt.style.position = 'absolute';
+    canvas.elt.style.left = `${offsetX}px`;
+    canvas.elt.style.top = `${offsetY}px`;
   }
 }
